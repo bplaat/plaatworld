@@ -26,7 +26,7 @@
     <input id="name-input" type="text" value="Anonymous" maxlength="24" style="top:2px;right:2px">
     <input id="chat-input" type="text" placeholder="Chat..." style="bottom:2px;left:2px;width:25%">
     <script>
-        var SERVER_URL = 'wss://plaatworld.bplaat.nl/';
+        var SERVER_URL = '/ws';
         function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
         var canvas = document.getElementById('canvas');
         var ctx = canvas.getContext('2d');
@@ -236,7 +236,7 @@
     <script id="cookieinfo" src="https://cookieinfoscript.com/js/cookieinfo.min.js" data-position="top"
         data-font-size="16px" data-cookie="plaatworld3d_banner"
         data-message="The new <b>PlaatWorld 3D</b> game is now available, play it now!" data-linkmsg="Play"
-        data-moreinfo="https://plaatworld3d.netlify.app/" data-close-text="Close"></script>
+        data-moreinfo="https://plaatworld3d.bplaat.nl/" data-close-text="Close"></script>
 </body>
 
 </html>
