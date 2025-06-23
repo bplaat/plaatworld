@@ -7,16 +7,17 @@
     <title>PlaatWorld</title>
     <style>
         body {
-            margin: 0
+            margin: 0;
+            overflow: hidden;
         }
 
         #canvas {
-            display: block
+            display: block;
         }
 
         input,
         button {
-            position: absolute
+            position: absolute;
         }
     </style>
 </head>
@@ -26,7 +27,7 @@
     <input id="name-input" type="text" value="Anonymous" maxlength="24" style="top:2px;right:2px">
     <input id="chat-input" type="text" placeholder="Chat..." style="bottom:2px;left:2px;width:25%">
     <script>
-        var SERVER_URL = '/ws';
+        var SERVER_URL = 'https://plaatworld.bplaat.nl/ws';
         function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
         var canvas = document.getElementById('canvas');
         var ctx = canvas.getContext('2d');
@@ -34,9 +35,12 @@
         var players = [], player_id, player_health, loaded = false, chats = [], CHAT_MAX, objects = [], PLAYER_WIDTH = 75, PLAYER_HEIGHT = 150;
 
         function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            CHAT_MAX = canvas.width > 768 ? 15 : 5;
+            canvas.width = window.innerWidth * window.devicePixelRatio;
+            canvas.height = window.innerHeight * window.devicePixelRatio;
+            canvas.style.width = window.innerWidth + 'px';
+            canvas.style.height = window.innerHeight + 'px';
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            CHAT_MAX = window.innerWidth > 768 ? 15 : 5;
         }
         resize();
         window.onresize = resize;
@@ -155,8 +159,8 @@
             event.preventDefault();
             moveLeft = event.touches[0].pageX < EDGE;
             moveUp = event.touches[0].pageY < EDGE;
-            moveRight = event.touches[0].pageX > canvas.width - EDGE;
-            moveDown = event.touches[0].pageY > canvas.height - EDGE;
+            moveRight = event.touches[0].pageX > window.innerWidth - EDGE;
+            moveDown = event.touches[0].pageY > window.innerHeight - EDGE;
         };
         canvas.addEventListener('touchstart', mobileMove);
         canvas.addEventListener('touchmove', mobileMove);
@@ -175,8 +179,8 @@
                 if (moveLeft || moveUp || moveRight || moveDown) {
                     ws.send(JSON.stringify({ type: 'player_change', player_id: player_id, x: players[player_id].x, y: players[player_id].y, facing: players[player_id].facing }));
                 }
-                camera_x = players[player_id].x - canvas.width / 2;
-                camera_y = players[player_id].y - canvas.height / 2;
+                camera_x = players[player_id].x - window.innerWidth / 2;
+                camera_y = players[player_id].y - window.innerHeight / 2;
                 if (player_health > players[player_id].health) {
                     new Audio('/pain' + rand(1, 2) + '.mp3').play();
                     player_health = players[player_id].health;
@@ -185,7 +189,7 @@
         }
 
         function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
             for (var i = 0; i < objects.length; i++) {
                 ctx.drawImage(objects[i].image, objects[i].x - camera_x - objects[i].width / 2, objects[i].y - camera_y - objects[i].height / 2, objects[i].width, objects[i].height);
             }
@@ -222,7 +226,7 @@
             }
             for (var i = 0; i < chats.length; i++) {
                 var player_name = (players[chats[i].player_id] ? players[chats[i].player_id].name : (chats[i].player_id == -1 ? 'PlaatWorld' : 'Anonymous'));
-                ctx.fillText(player_name + ': ' + chats[i].text, 4, canvas.height - 18 - chats.length * 16 + i * 16);
+                ctx.fillText(player_name + ': ' + chats[i].text, 4, window.innerHeight - 18 - chats.length * 16 + i * 16);
             }
         }
 
