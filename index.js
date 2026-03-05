@@ -1,5 +1,74 @@
-var WebSocket = require('ws');
-var wss = new WebSocket.Server({ port: process.env.PORT || 8080 });
+import http from "node:http";
+import fs from "node:fs";
+import path from "node:path";
+import { WebSocketServer } from "ws";
+import { fileURLToPath } from "node:url";
+
+const __dirname = fileURLToPath(import.meta.url).replace(/\/[^/]+$/, "");
+
+// Configuration
+var PORT = process.env.PORT || 8080;
+var CLIENT_DIR = path.join(__dirname, "client");
+
+// Create HTTP server with static file serving
+var server = http.createServer(function (req, res) {
+    // Handle WebSocket upgrade
+    if (req.url === "/ws") {
+        return; // Will be handled by upgrade event
+    }
+
+    // Serve static files from client directory
+    var filePath = path.join(
+        CLIENT_DIR,
+        req.url === "/" ? "index.html" : req.url,
+    );
+
+    // Security: prevent directory traversal
+    if (!filePath.startsWith(CLIENT_DIR)) {
+        res.writeHead(403);
+        res.end();
+        return;
+    }
+
+    fs.readFile(filePath, function (err, data) {
+        if (err) {
+            res.writeHead(404);
+            res.end("Not Found");
+            return;
+        }
+
+        // Determine content type
+        var ext = path.extname(filePath).toLowerCase();
+        var contentType =
+            {
+                ".html": "text/html",
+                ".js": "application/javascript",
+                ".css": "text/css",
+                ".json": "application/json",
+                ".png": "image/png",
+                ".jpg": "image/jpeg",
+                ".jpeg": "image/jpeg",
+                ".gif": "image/gif",
+                ".svg": "image/svg+xml",
+                ".mp3": "audio/mpeg",
+            }[ext] || "application/octet-stream";
+
+        res.writeHead(200, { "Content-Type": contentType });
+        res.end(data);
+    });
+});
+
+var wss = new WebSocketServer({ noServer: true });
+
+server.on('upgrade', function upgrade(request, socket, head) {
+    if (request.url === "/ws") {
+        wss.handleUpgrade(request, socket, head, function done(ws) {
+            wss.emit('connection', ws, request);
+        });
+    } else {
+        socket.destroy();
+    }
+});
 
 function rand (min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
@@ -212,3 +281,8 @@ setInterval(function () {
         }
     }
 }, 1000 / 5);
+
+// Start server
+server.listen(PORT, function () {
+    console.log("PlaatWorld server listening on http://localhost:" + PORT);
+});
